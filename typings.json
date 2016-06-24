@@ -1,0 +1,13 @@
+{
+  "name": "k-router",
+  "dependencies": {
+    "chai": "registry:npm/chai#3.5.0+20160415060238",
+    "methods": "registry:npm/methods#1.0.0+20160211003958"
+  },
+  "globalDependencies": {
+    "mocha": "registry:env/mocha#2.2.5+20160321223601",
+    "node": "registry:env/node#6.0.0+20160622202520",
+    "superagent": "registry:dt/superagent#1.4.0+20160317120654",
+    "supertest": "registry:dt/supertest#1.1.0+20160317120654"
+  }
+}
