@@ -2,6 +2,7 @@ import {assert} from 'chai';
 import * as request from 'supertest';
 import * as Koa from 'koa';
 import * as acl from './acl';
+import * as router from 'koa-route-ts';
 
 // Users repo 
 const users: User[] = [
@@ -67,7 +68,7 @@ describe('Restrict Access', () => {
         app = new Koa();
 
         // restrict user exists is users, sets ctx.user
-        app.use(auth.auth(findUser));
+        app.use(auth(findUser));
 
         // restrict user in 'role'
         app.use(acl.middleware(getUser, user => user.roles));
