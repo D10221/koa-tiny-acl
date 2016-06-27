@@ -5,6 +5,7 @@
     "methods": "registry:npm/methods#1.0.0+20160211003958"
   },
   "globalDependencies": {
+    "koa": "registry:dt/koa#2.0.0+20160619030120",
     "mocha": "registry:env/mocha#2.2.5+20160321223601",
     "node": "registry:env/node#6.0.0+20160622202520",
     "superagent": "registry:dt/superagent#1.4.0+20160317120654",
