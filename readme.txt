@@ -1,1 +1,0 @@
-mini acl for koa-route-ts

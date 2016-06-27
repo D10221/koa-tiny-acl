@@ -1,7 +1,7 @@
 import {assert} from 'chai';
 import * as request from 'supertest';
 import * as Koa from 'koa';
-import {Acl} from './acl';
+import {Acl, KoaMiddleware, KoaNext } from './acl';
 import * as pathToRegexp from 'path-to-regexp';
 import * as router from 'koa-route-ts';
 
@@ -64,16 +64,23 @@ describe('restrictions', () => {
     it('finds right restriction', () => {
         const acl = new Acl();
         acl.restrict('/a/:x*', ['x']);
-        let x = acl.restrictions('/');
+        let x = acl.getRestrictions('/');
         assert.isNull(x);
-        x = acl.restrictions('a');
+        x = acl.getRestrictions('a');
         assert.isNull(x);
-        x = acl.restrictions('/a');
+        x = acl.getRestrictions('/a');
         assert.deepEqual(x, ['x']);
-        x = acl.restrictions('/a/?');
+        x = acl.getRestrictions('/a/?');
         assert.deepEqual(x, ['x']);
     })
 })
+
+/**
+ * go around bad d.ts 
+ */
+function listen(app){
+    return app.listen();
+}
 
 describe('Restrict Access', () => {
 
@@ -89,7 +96,7 @@ describe('Restrict Access', () => {
     app.use(auth(findUser));
 
     // restrict user in 'role'
-    app.use(acl.middleware(getUser, user => user.roles));
+    app.use(acl.create(getUser, user => user.roles));
 
     //@restrict('admin')
     acl.restrict('/users/:name*', ['admin']);
@@ -105,27 +112,27 @@ describe('Restrict Access', () => {
     }));
 
     it('200', (done) => {
-        request(app.listen())
+        request(listen(app))
             .get('/users/bob')
             .set('Authentication', authorize('admin:admin'))
             .expect(200)
             .expect('bob', done)});            
 
         it('403', (done) => {
-            request(app.listen())
+            request(listen(app))
                 .get('/users/bob')
                 .set('Authentication', authorize('bob:bob'))
                 .expect(403, done);
         });
 
         it('dmz:200', (done) => {
-            request(app.listen())
+            request(listen(app))
                 .get('/dmz')
                 .expect(200, done);
         });
 
         it('unrestricted:200', (done) => {
-            request(app.listen())
+            request(listen(app))
                 // route added after with no restrictions after auht:middleware => requires auth , does not requires 'role' 
                 .get('/unrestricted')
                 .set('Authentication', authorize('bob:bob'))
@@ -134,5 +141,4 @@ describe('Restrict Access', () => {
 
     })
 
-    type KoaNext = () => any
-    type KoaMiddleware = (ctx: Koa.Context, KoaNext) => any;
+ 

@@ -18,7 +18,7 @@ export class Acl {
     /**
      * @returns restriction from matching path
      */
-    restrictions(url): string[] {
+    getRestrictions(url): string[] {
         if (!url) return null;
         for (let e of this._entries.values()) {
             if (e.re.test(url)) {
@@ -36,11 +36,28 @@ export class Acl {
             re: pathToRegexp(path, opts),
             inclusiveList: inclusiveList
         });
-    }    
+    }
 
-    middleware = <T>(target: (ctx: Koa.Context) => T, claims: (x: T) => any[]): any /*Koa.Middleware*/ => {
-        
-        let self = this;
+
+    /**
+     * 
+     * Creates Middleware for target/claims
+     * @template T 
+     * @param {(ctx: Koa.Context) => T} target
+     * @param {(x: T) => any[]} claims
+     * @returns {KoaMiddleware}
+     */
+    create<T/*TR extends string|number|symbol*/>(
+        target: (ctx: Koa.Context) => T,
+        claims: (x: T) => any/*TR*/[],
+        deny?: (ctx: AclContext, next?) => any): KoaMiddleware {
+        //...    
+        deny = deny || ((ctx: AclContext, next?): any => {
+            //Can't throw ! why ?        
+            ctx.status = 403;
+        })
+
+        let acl = this;
 
         function find<T>(restrictions: T[], claims: T[]): boolean {
             for (let restriction of restrictions) {
@@ -52,13 +69,13 @@ export class Acl {
         }
 
         let setup = (ctx): AclContext => {
-            ctx.acl = ctx.acl || self;
+            ctx.acl = ctx.acl || acl;
             return ctx;
         }
 
         let hasAccess = (ctx: AclContext) => {
 
-            let restrictions = ctx && ctx.acl ? ctx.acl.restrictions(ctx.url) : null;
+            let restrictions = ctx && ctx.acl ? ctx.acl.getRestrictions(ctx.url) : null;
             if (!restrictions) {
                 return true;
             }
@@ -69,26 +86,24 @@ export class Acl {
             }
             let _claims = claims(subject);
             const ok = find(restrictions, _claims);
-            if(!ok){
-                let restrictions = ctx.acl.restrictions(ctx.path).join(',');                        
-                console.log(`access denied to subject: ${`${subject ? JSON.stringify(subject): 'none'} \n`} with claims:[${_claims ? _claims.join(','): 'none'}] for path: ${ctx.path}, with restrictions: ${restrictions}`)
+            if (!ok) {
+                let restrictions = ctx.acl.getRestrictions(ctx.path).join(',');
+                debug(`access denied to subject: ${`${subject ? JSON.stringify(subject) : 'none'} \n`}` +
+                    ` with claims:[${_claims ? _claims.join(',') : 'none'}] \n` +
+                    ` for path: ${ctx.path}, with restrictions: ${restrictions} \n`)
             }
-            return ok;            
+            return ok;
         }
 
-        return function (ctx, next) :void {
+        return function (ctx, next): void {
             if (hasAccess(setup(ctx))) {
                 next();
                 return;
-            }            
-            //Can't throw ! why ?
-            self.deny(ctx, next);
+            }
+            deny(ctx, next);
         }
     };
 
-    deny = (ctx: AclContext, next?): any => {        
-        ctx.status = 403;
-    }
 }
 
 export interface AclContext extends Koa.Context {
@@ -96,8 +111,10 @@ export interface AclContext extends Koa.Context {
 }
 
 export interface Entry {
-    re: RegExp,
-    inclusiveList: any[]
+    re: RegExp;
+    inclusiveList: any[];
 }
 
- 
+export type KoaNext = () => any
+export type KoaMiddleware = (ctx: Koa.Context, KoaNext) => any;
+
