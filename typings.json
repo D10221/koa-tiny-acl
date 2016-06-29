@@ -2,7 +2,9 @@
   "name": "k-router",
   "dependencies": {
     "chai": "registry:npm/chai#3.5.0+20160415060238",
-    "methods": "registry:npm/methods#1.0.0+20160211003958"
+    "debug": "registry:npm/debug#2.0.0+20160511151334",
+    "methods": "registry:npm/methods#1.0.0+20160211003958",
+    "tape": "registry:npm/tape#4.0.0+20160622192935"
   },
   "globalDependencies": {
     "koa": "registry:dt/koa#2.0.0+20160619030120",

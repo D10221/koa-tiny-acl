@@ -5,21 +5,22 @@
   "main": "built/acl.js",
   "typings": "built/acl.d.ts",
   "repository": {
-    "git":"https://github.com/D10221/koa-tiny-acl.git"
+    "git": "https://github.com/D10221/koa-tiny-acl.git"
   },
   "scripts": {
-    "test": "mocha built/ || true",
+    "test": "export DEBUG=koa-tiny-acl ||SET DEBUG=koa-tiny-acl && npm run build  && mocha built/tests.js || true",
     "build": "tsc -p . || true"
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "debug": "^2.2.0",
     "koa": "^2.0.0",
-    "path-to-regexp": "^1.5.3"
+    "path-to-regexp": "^1.5.3",
+    "tape": "^4.6.0"
   },
   "devDependencies": {
     "chai": "^3.5.0",
-    "koa-route-ts": "D10221/koa-route-ts",
     "mocha": "^2.5.3",
     "supertest": "^1.2.0"
   }
